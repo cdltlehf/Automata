@@ -1,14 +1,62 @@
 {
+  "build": {
+    "productName": "Automata",
+    "appId": "com.electron.hello",
+    "asar": true, 
+    "protocols" : {
+        "name" : "Automata",
+        "schemes" : ["Automata"]
+    },
+    "mac": { 
+      "target": [
+        "default"
+      ]
+    },
+    "dmg": { 
+      "title": "Automata"
+    },
+    "win": {  
+      "target": [  
+        "zip",  
+        "nsis"  
+      ]
+    },
+    "linux": { 
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm",
+        "zip",
+        "tar.gz"
+      ]
+    },
+    "nsis":{
+      "oneClick" : false, 
+      "allowToChangeInstallationDirectory" :true 
+    },
+    "directories": {
+      "buildResources": "resources/installer/",
+      "output": "dist/", 
+      "app": "."
+    }
+  },
   "name": "automata",
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:osx": "build --mac",
+    "build:win": "npm run build:win32 && npm run build:win64",
+    "build:win32": "build --win --ia32",
+    "build:win64": "build --win --x64",
+    "build": "npm run build:osx && npm run build:win"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^4.0.3"
+    "electron": "^4.0.3",
+    "electron-builder": "^20.38.5"
   }
 }

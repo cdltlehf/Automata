@@ -169,8 +169,26 @@ class NFA {
     return new NFA(states, symbols, transition, startState, finalStates);
   }
 
+  static getWildcard(alphabet=NFA.Alphanumeric) {
+    const states = ['wildcard', 'wildcardEnd'];
+    const symbols = alphabet;
+    const transition = {};
+    transition.wildcard = {};
+    transition.wildcardEnd = {};
+    for (let i in symbols) {
+      transition.wildcard[symbols[i]] = ['wildcardEnd'];
+      transition.wildcardEnd[symbols[i]] = [];
+    }
+    transition.wildcard[''] = [];
+    transition.wildcardEnd[''] = [];
+    const startState = 'wildcard';
+    const finalStates = ['wildcardEnd'];
+    return new NFA(states, symbols, transition, startState, finalStates);
+  }
+
   static get(c, alphabet=NFA.Alphanumeric) {
-    if (c=="") return getEmpty(alphabet);
+    if (c=="") return NFA.getEmpty(alphabet);
+    if (c==".") return NFA.getWildcard(alphabet);
     const states = [c, c+'End'];
     const symbols = alphabet;
     const transition = {};
@@ -189,15 +207,18 @@ class NFA {
 
   static parseExp(str, alphabet=NFA.Alphanumeric) {
     let result;
+    if (str=="") return NFA.getEmpty();
     for (let i = str.length-1;i>=0;i--) {
-      if(alphabet.includes(str[i])) {
-        if (result) result = NFA.get(str[i]).concatenation(result);
-        else result = NFA.get(str[i]);
-      }
-      else if(str[i] == ')') {
-        let j = str.indexOf('(');
+      if(str[i] == ')') {
+        let count = 0;
+        let j;
+        for(j=i;j>=0;j--) {
+          if(str[j]==')') count++;
+          if(str[j]=='(') count--;
+          if (count==0) break;
+        }
         if (result) result = NFA.parseExp(str.slice(j+1, i), alphabet).concatenation(result);
-        else result = NFA.get(str[i]);
+        else result = NFA.parseExp(str.slice(j+1,i),alphabet);
         i = j;
       }
       else if(str[i] == '|') {
@@ -205,17 +226,26 @@ class NFA {
         i = 0;
       }
       else if(str[i] == '*') {
-        if(alphabet.includes(str[i])) {
-          if (result) result = NFA.get(str[i]).star().concatenation(result);
-          else result = NFA.get(str[i]).star();
-        }
-        else if (str[i-1] == ')') {
-          let j = str.indexOf('(');
-          if (result) result = NFA.parseExp(str.slice(j+1, i), alphabet).star().concatenation(result);
-          else result = NFA.parseExp(str.slice(j+1, i), alphabet).star();
+        if (str[i-1] == ')') {
+          let count = 0;
+          let j;
+          for(j=i-1;j>=0;j--) {
+            if(str[j]==')') count++;
+            if(str[j]=='(') count--;
+            if (count==0) break;
+          }
+          if (result) result = NFA.parseExp(str.slice(j+1, i-1), alphabet).star().concatenation(result);
+          else result = NFA.parseExp(str.slice(j+1, i-1), alphabet).star();
           i = j;
-        } else throw str[i];
-      } else throw str[i];
+        } else {
+          if (result) result = NFA.get(str[i-1]).star().concatenation(result);
+          else result = NFA.get(str[i-1]).star();
+          i--;
+        }
+      } else {
+        if (result) result = NFA.get(str[i]).concatenation(result);
+        else result = NFA.get(str[i]);
+      }
     }
     return result;
   }
@@ -261,6 +291,7 @@ class NFA {
     states = this._equivalence(states);
     for (let i in input) {
       const a = input[i];
+      if (!this.symbols.includes(a)) continue;
       const result = this._equivalence([...new Set(states.reduce((arr, q) => {
         return (arr.concat(this.transition[q][a]));
       }, []))]);
@@ -357,49 +388,3 @@ class NFA {
     return new NFA(states, symbols, transition, startState, finalStates);
   }
 }
-
-// Ends with 01
-const nfa1 = new NFA(['a', 'b', 'c'],
-                  ['0', '1'],
-                  {'a' : {'0' : ['a', 'b'], '1' : ['a'], [""]: []},
-                   'b' : {'0' : [], '1' : ['c'], [""]: []},
-                   'c' : {'0' : [], '1' : [], [""]: []}},
-                  'a',
-                  ['c']);
-
-// Ends with 01 or 10
-const nfa2 = new NFA(['a', 'b', 'c', 'e', 'f', 'g'],
-                  ['0', '1'],
-                  {'a' : {'0' : ['a'], '1' : ['a'], [""]: ['b', 'e']},
-                   'b' : {'0' : ['c'], '1' : [], [""]: []},
-                   'c' : {'0' : [], '1' : ['d'], [""]: []},
-                   'd' : {'0' : [], '1' : [], [""]: []},
-                   'e' : {'0' : [], '1' : ['f'], [""]: []},
-                   'f' : {'0' : ['g'], '1' : [], [""]: []},
-                   'g' : {'0' : [], '1' : [], [""]: []}},
-                  'a',
-                  ['d', 'g']);
-
-// Substring 01
-const dfa1 = new DFA(['a', 'b', 'c'],
-                   ['0', '1'],
-                   {'a' : {'0' : 'b', '1' : 'a'},
-                    'b' : {'0' : 'b', '1' : 'c'},
-                    'c' : {'0' : 'c', '1' : 'c'}},
-                   'a',
-                   ['c']);
-
-// Odd number of 1s
-const dfa2 = new DFA(['d', 'e'],
-                   ['0', '1'],
-                   {'d' : {'0' : 'd', '1' : 'e'},
-                    'e' : {'0' : 'e', '1' : 'd'}},
-                   'd',
-                   ['e']);
-
-const grey = NFA.parseExp('gr(e|a)y|red');
-console.log(grey.toString());
-console.log(grey.isAccept("grey", true));
-console.log(grey.isAccept("red", true));
-console.log(grey.isAccept("gray", true));
-console.log(grey.isAccept("black", true));
