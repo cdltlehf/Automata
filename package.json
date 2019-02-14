@@ -2,26 +2,28 @@
   "build": {
     "productName": "Automata",
     "appId": "com.electron.hello",
-    "asar": true, 
-    "protocols" : {
-        "name" : "Automata",
-        "schemes" : ["Automata"]
+    "asar": true,
+    "protocols": {
+      "name": "Automata",
+      "schemes": [
+        "Automata"
+      ]
     },
-    "mac": { 
+    "mac": {
       "target": [
         "default"
       ]
     },
-    "dmg": { 
+    "dmg": {
       "title": "Automata"
     },
-    "win": {  
-      "target": [  
-        "zip",  
-        "nsis"  
+    "win": {
+      "target": [
+        "zip",
+        "nsis"
       ]
     },
-    "linux": { 
+    "linux": {
       "target": [
         "AppImage",
         "deb",
@@ -30,13 +32,13 @@
         "tar.gz"
       ]
     },
-    "nsis":{
-      "oneClick" : false, 
-      "allowToChangeInstallationDirectory" :true 
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
     },
     "directories": {
       "buildResources": "resources/installer/",
-      "output": "dist/", 
+      "output": "dist/",
       "app": "."
     }
   },
@@ -58,5 +60,6 @@
   "devDependencies": {
     "electron": "^4.0.3",
     "electron-builder": "^20.38.5"
-  }
+  },
+  "dependencies": {}
 }

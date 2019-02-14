@@ -40,7 +40,7 @@ class DFA {
     return state;
   }
 
-  isAccept(input, log = false) { 
+  accepts(input, log = false) { 
     if (log) console.log(input);
     return this.finalStates.includes(this.computate(this.startState, input, log));
   }
@@ -119,7 +119,7 @@ class DFA {
   testBinary(n, log=false) {
     for (let i=0;i<n;i++) {
       console.log(i.toString(2));
-      console.log(nfa3.isAccept(i.toString(2), log));
+      console.log(nfa3.accepts(i.toString(2), log));
     }
   }
 }
@@ -301,7 +301,7 @@ class NFA {
     return states;
   }
 
-  isAccept(input, log = false) { 
+  accepts(input, log = false) { 
     if (log) console.log(input);
     return this.computate([this.startState], input, log).some(q => this.finalStates.includes(q));
   }
